@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hand.hap.order.mapper.OrderMapper">
+    <resultMap id="BaseResultMap" type="com.hand.hap.order.dto.Order">
+        <result column="HEADER_ID" property="headerId" jdbcType="DECIMAL" />
+        <result column="ORDER_NUMBER" property="orderNumber" jdbcType="VARCHAR" />
+        <result column="COMPANY_NAME" property="companyName" jdbcType="VARCHAR" />
+        <result column="CUSTOMER_NAME" property="customerName" jdbcType="VARCHAR" />
+        <result column="CREATION_DATE" property="creationDate" jdbcType="DATE" />
+        <result column="ORDER_STATUS" property="orderStatus" jdbcType="VARCHAR" />
+        <result column="TOTAL" property="total" jdbcType="DECIMAL" />
+    </resultMap>
+    <select id="selectCollect" resultMap="BaseResultMap" parameterType="com.hand.hap.order.dto.Order">
+        select h.HEADER_ID,h.ORDER_NUMBER,c.COMPANY_NAME,cu.CUSTOMER_NAME,h.CREATION_DATE,h.ORDER_STATUS,sum(l.ORDERD_QUANTITY*l.UNIT_SELLING_PRICE) TOTAL
+        from hap_om_order_headers h,hap_om_order_lines l,hap_org_companys c,hap_ar_customers cu,hap_inv_inventory_items inv
+        <where>
+            h.HEADER_ID=l.HEADER_ID and c.COMPANY_ID=h.COMPANY_ID and cu.COMPANY_ID =c.COMPANY_ID and h.CUSTOMER_ID = cu.CUSTOMER_ID and inv.INVENTORY_ITEM_ID=l.INVENTORY_ITEM_ID
+            <if test="companyId != null">
+                and c.COMPANY_ID = #{companyId}
+            </if>
+            <if test="customerId != null">
+                and cu.CUSTOMER_Id = #{customerId}
+            </if>
+            <if test="inventoryItemId != null">
+                and inv.INVENTORY_ITEM_ID = #{inventoryItemId}
+            </if>
+            <if test="orderNumber != null">
+                and h.ORDER_NUMBER = #{orderNumber}
+            </if>
+            <if test="orderStatus != null">
+                and h.ORDER_STATUS = #{orderStatus}
+            </if>
+        </where>
+        GROUP BY h.HEADER_ID
+    </select>
+</mapper>

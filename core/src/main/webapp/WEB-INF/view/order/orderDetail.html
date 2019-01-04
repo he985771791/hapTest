@@ -1,0 +1,339 @@
+<#--
+* description:订单记录界面
+* version: 1.0
+* author:xiangyu.qi@hand-china.com
+* -->
+<#include "../include/header.html">
+<body>
+<script src="${base.contextPath}/common/code?requestStatusdata=HAP_OM_ORDER_STATUS" type="text/javascript"></script>
+<script src="/lib/jquery.params.js"></script>
+<script type="text/javascript">
+    /*获取订单状态*/
+    var viewModel = Hap.createGridViewModel("#grid", {
+        requeteMethodData: [
+            {mean: "GET", value: "GET"},
+            {mean: "POST", value: "POST"}],
+        requestStatusData: requestStatusdata
+    });
+</script>
+    <div id="page-content" style="margin-left: 10px;">
+        <div class="panel" id="inQuery" style="padding: 0px;border:none;box-shadow: none;">
+                <div class="panel-body">
+                    <div class="row" style="margin-bottom: 10px;">
+                        <!--订单编号-->
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"><@spring.message
+                                    "order.number"/></label>
+                                <div class="col-sm-8">
+                                    <div class="col-sm-8">
+                                        <input type="text" style="width: 100%"
+                                               data-bind="value:model.orderNumber" class="k-textbox">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--公司名称-->
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"><@spring.message"order.company.name"/></label>
+                                <div class="col-sm-8">
+                                    <input id="companyName"type="text" style="width: 100%"
+                                           data-bind="value:model.companyId,text:model.companyName" class="k-textbox">
+                                </div>
+                            </div>
+                        </div>
+                        <!--客户名称-->
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"><@spring.message"order.customer.name"/></label>
+                                <div class="col-sm-8">
+                                    <input id="customerName"type="text" style="width: 100%"
+                                           data-bind="value:model.customerId,text:model.customerName" class="k-textbox">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ">
+                        <!--订单日期-->
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"><@spring.message
+                                    "order.date"/></label>
+                                <div class="col-sm-8">
+                                    <input id="creationDate"type="date" style="width: 100%"
+                                           data-bind="value:model.creationDate" >
+                                </div>
+                            </div>
+                        </div>
+                        <!--订单总金额-->
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"><@spring.message
+                                    "order.price.total"/></label>
+                                <div class="col-sm-8">
+                                    <input id="total"type="text" style="width: 100%"
+                                           data-bind="value:model.total" class="k-textbox">
+                                </div>
+                            </div>
+                        </div>
+                        <!--订单状态-->
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label"><@spring.message
+                                    "order.status"/></label>
+                                <div class="col-sm-8">
+                                    <select data-role="combobox" data-value-primitive="true"
+                                            data-text-field="meaning" data-value-field="value"
+                                            data-bind="source: requestStatusData,value:model.orderStatus" style="width: 100%;"></select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <div class="row">
+                <div class="col-sm-6">
+                    <!--保存-->
+                    <span class="btn btn-primary" data-bind="click:query"
+                                 type="submit"><@spring.message "hap.save"/></span>
+                    <!--提交-->
+                    <span class="btn btn-default" type="button" data-bind="click:reset"><@spring.message "hap.submit"/></span>
+                    <!--审批-->
+                    <span class="btn btn-default" type="button" data-bind="click:reset"><@spring.message "order.approve"/></span>
+                    <!--拒绝-->
+                    <span class="btn btn-default" type="button" data-bind="click:reset"><@spring.message "oauth2clientdetails.reject"/></span>
+                    <!--整单删除-->
+                    <span class="btn btn-default" type="button" data-bind="click:reset"><@spring.message "hap.delete"/></span>
+                    <!--单据打印-->
+                    <span class="btn btn-default" type="button" data-bind="click:reset"><@spring.message "order.print"/></span>
+                    <!--返回-->
+                    <span class="btn btn-default" type="button" data-bind="click:reset"><@spring.message "hap.back"/></span>
+                </div>
+            </div>
+        </div>
+        <script>kendo.bind($('#page-content'), viewModel);</script>
+        <div id="tabstrip" style=" margin-left: 10px;">
+            <ul>
+                <li id="inboundtab" style="margin-top: 10px; margin-left: 10px;"><@spring.message "order.main"/></li>
+                <li id="outboundtab" style="margin-top: 10px; margin-left: 10px;"><@spring.message "order.others"/></li>
+            </ul>
+            <div style="clear: both;">
+                <div style="width: 100%;height: 30px;background-color:#e7e5e0">
+                    <div style="height: 10%;line-height: 30px;margin-left: 10px" id="toolbar-btn">
+                        <!--新建-->
+                        <a href="javascript:void(0)" data-bind="click:create"><i class="fa fa-plus-square"><@spring.message "hap.new"/></i></a>
+                        <!--保存-->
+                        <a href="javascript:void(0)"><i class="fa fa-save"><@spring.message "hap.save"/></i></a>
+                        <!--删除-->
+                        <a href="javascript:void(0)"><i class="fa fa-trash-o"><@spring.message "hap.delete"/></i></a>
+                    </div>
+                    <script>kendo.bind($('#toolbar-btn'), viewModel);</script>
+                </div>
+                <div id="grid"></div>
+            </div>
+        </div>
+        <!--左侧detail-->
+        <div id="inboundDetail" class="panel" style="border: 0px;padding: 0px 30px;;margin:0px"></div>
+        <!--右侧detail-->
+        <div id="outboundDetail"  class="panel" style="border: 0px;padding: 0px 30px;;margin:0px"></div>
+
+    </div>
+<script type="text/javascript">
+    /*左侧tab*/
+    var tabToActivate = $("#inboundtab");
+    var tabstrip =  $("#tabstrip").kendoTabStrip({
+            animation: {
+                close: {
+                    duration: 200,
+                    effects: "fadeOut"
+                },
+                open: {
+                    duration: 200,
+                    effects: "fadeIn"
+                }
+            }
+        }
+    ).data("kendoTabStrip");
+    tabstrip.activateTab(tabToActivate);
+    var headerId = $.query.get("headerId");
+    Hap.initEnterQuery('#page-content', viewModel.query);
+        var BaseUrl = _basePath;
+        dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: BaseUrl + "/order/detail?headerId="+headerId,
+                    type: "POST",
+/*                    contentType: "application/json",*/
+                    dataType: "json"
+                },
+                create : {/*create:Object 数据源创建数据的远程配置*/
+                    url        : BaseUrl + "/lines/submit",
+                    contentType: "application/json",
+                    type       : "POST"
+                },
+                update: {/*update:Object 数据源更新数据的远程配置*/
+                    url: BaseUrl + "/lines/submit",
+                    contentType: "application/json",
+                    type: "POST"
+                },
+                destroy: {
+                    url: BaseUrl + "/lines/remove",
+                    contentType: "application/json",
+                    type: "POST"
+                },
+                parameterMap: function (options, type) {
+                    if (type !== "read" && options.models) {
+                        var datas = Hap.prepareSubmitParameter(options, type)
+                        return kendo.stringify(datas);
+                    } else if (type === "read") {
+                        console.log(viewModel.model.toJSON())
+                        return Hap.prepareQueryParameter(viewModel.model.toJSON(), options)
+                    }
+                }
+            },
+            batch: true,
+            serverPaging: true,
+            serverSorting: true,
+            pageSize: 10,
+            schema: {
+                data: 'rows',
+                total: 'total',
+                model: {
+                    id:"lineId",
+                    fields: {
+                        lineId:{type:"long"},
+                        total:{type:"long"},
+                        orderNumber:{type: "string",validation:{required:true}},
+                        companyId:{type:"long",validation:{required:true}},
+                        companyName:{type: "string"},
+                        customerId:{type:"long",validation:{required:true}},
+                        customerName:{type: "string"},
+                        creationDate:{type: "Date",validation:{required:true}},
+                        orderStatus:{type: "string"}
+                    }
+                }
+            }
+        });
+    console.log(dataSource)
+    var grid = $("#grid").kendoGrid({
+        dataSource: dataSource,
+        navigatable: false,
+        autoResize: false,
+        resizable: true,
+        scrollable: true,
+        sortable: true,
+        pageable: {
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,
+            buttonCount: 5
+        },
+        columns: [
+            /* 行号 */
+            {
+                field: "lineNumber",
+                title: '<@spring.message"parameterconfig.linenumber"/>',
+                width: 80,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+             },
+            /* 物料编码 */
+            {
+                field: "itemCode",
+                title: '<@spring.message "inventory.item.code"/>',
+                width: 140,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+            },
+            /* 物料描述 */
+            {
+                field: "itemDescription",
+                title: '<@spring.message "inventory.item.description"/>',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                width: 100,
+                attributes: {style: "text-align:center"}
+            },
+            /* 产品单位 */
+            {
+                field: "itemUom",
+                title: '<@spring.message "item.uom"/>',
+                headerAttributes: {
+                    style: "text-align: center"
+                },
+                width: 80,
+                attributes: {style: "text-align:center"}
+            },
+            /* 数量 */
+            {
+                field: "orderdQuantity",
+                title: '<@spring.message "order.quantity"/>',
+                width: 80,
+                attributes: {style: "text-align:center;"},
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+            },
+            /* 销售单价 */
+            {
+                field:"unitSellingPrice",
+                title: '<@spring.message "unit.selling.price"/>',
+                width: 80,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+            },
+            /* 金额 */
+            {
+                field:"sumPrice",
+                title: '<@spring.message "order.price.total"/>',
+                width: 80,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+            },
+            /* 备注 */
+            {
+                field:"description",
+                title: '<@spring.message "hap.comment"/>',
+                width: 80,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    style: "text-align: center"
+                }
+            }
+        ],
+        editable: true
+    }).data("kendoGrid");
+    /*为公司姓名搜索添加LOV*/
+    $("#companyName").kendoLov(${lovProvider.getLov(base.contextPath, base.locale,"LOV_MY_COMPANY")})
+    /*为客户名称搜索添加LOV*/
+    $("#customerName").kendoLov(${lovProvider.getLov(base.contextPath, base.locale,"CUSTOMERS")})
+    /*为物料搜索添加LOV*/
+    $("#itemDescription").kendoLov(${lovProvider.getLov(base.contextPath, base.locale,"LOV_INVENTORY_ITEMS")})
+    $("#creationDate").kendoDatePicker({
+        animation: {
+            close: {
+            },
+            open: {
+            }
+        },
+        format: "{0:yyyy-MM-dd}",
+        change: function(){
+        }
+    });
+
+</script>
+<style>
+    .fadeoff .k-textbox {
+        background: #eeeeee;
+    }
+</style>
+</body>
+</html>

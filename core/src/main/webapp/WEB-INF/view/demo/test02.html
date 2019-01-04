@@ -1,0 +1,258 @@
+<#include "../include/header.html">
+<script type="text/javascript">
+    /**/
+    var viewModel = kendo.observable({
+        model: {},
+        createFunction: function(){
+            /*动态添加一行数据*/
+            $('#grid').data('kendoGrid').addRow();
+        },
+        saveFunction: function(){
+            $('#grid').data('kendoGrid').saveChanges();
+        },
+        queryFunction: function (e) {
+            $('#grid').data('kendoGrid').dataSource.page(1);
+        },
+        resetForm : function(e) {
+            var formData = viewModel.model.toJSON();
+            for ( var k in formData) {
+                viewModel.model.set(k, null);
+            }
+        }
+    });
+
+</script>
+<body>
+<div id="page-content">
+    <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+	    <span class="btn btn-primary k-grid-add"
+              style="float:left;margin-right:5px;" data-bind="click:createFunction">
+        <@spring.message "hap.new"/></span>
+        <span class="btn btn-success k-grid-save-changes"
+              style="float:left;margin-right:5px;" data-bind="click:saveFunction">
+            <@spring.message "hap.save"/></span>
+        <span onclick="deleteData()" class="btn btn-danger" style="float:left;">
+            <@spring.message "hap.delete"/></span>
+    </div>
+
+    <div class="pull-right" id="query-form" style="padding-bottom:10px;">
+        <input id="myId" type="text" data-role="maskedtextbox"
+               placeholder='<@spring.message "demo.myid"/>'
+               data-bind="value:model.myId" class="k-textbox">
+        <input id="myName" type="text" placeholder='<@spring.message
+            "demo.myname"/>' data-bind="value:model.myName,
+            text:model.myName" >
+        <input id="myAge" type="text" data-role="maskedtextbox"
+                placeholder='<@spring.message "demo.myage"/>'
+                data-bind="value: model.myAge"  class="k-textbox"></input>
+        <input id="myBirthday" type="date" placeholder='<@spring.message
+            "demo.mybirthday"/>' data-bind="value:model.myBirthday">
+        <div style="margin:10px;margin-right:0px;">
+            <div class="col-md-9"></div>
+            <span class="btn btn-default" style="float:right;width:70px"
+                  data-bind="click:resetForm" type="button"><@spring.message
+                 "hap.reset"/></span>
+            <span class="btn btn-primary" style="float:right;width:70px;
+                 margin-right:5px;" data-bind="click:queryFunction"
+                  type="submit"><@spring.message "hap.query"/></span>
+        </div>
+        <div style="clear:both"></div>
+    </div>
+    <div style="clear:both">
+        <div id="grid"></div>
+    </div>
+</div>
+<!--新建时的弹窗div，要在page-content外面-->
+<div id="dialog"></div>
+<script type="text/javascript">
+    kendo.bind($('#page-content'), viewModel);
+</script>
+<script type="text/javascript">
+/*----------------------------------------------------------------*/
+    var crudServiceBaseUrl = '${base.contextPath}',
+        dataSource = new kendo.data.DataSource({
+            transport : {/*transport：Object 远程数据源加载配置*/
+                read : {/*read: Object 数据源拉取数据的远程配置*/
+                    url : crudServiceBaseUrl + "/demo/query",/*url：请求路径*/
+                    type    : "POST",/*type: 请求方式 如：POST  GET*/
+                    dataType: "json"
+                    /*contentType: 请求头请求参数格式。 如：appliaction/json*/
+                    /*cache: 是否缓存，默认false*/
+                    /* parameterMap：function 请求远程数据的时候的参数需要定义为后端需要的格式及信息*/
+                },
+                create : {/*create:Object 数据源创建数据的远程配置*/
+                    url        : crudServiceBaseUrl + "/demo/submit",
+                    contentType: "application/json",
+                    type       : "POST"
+                },
+                update: {/*update:Object 数据源更新数据的远程配置*/
+                    url: crudServiceBaseUrl + "/demo/submit",
+                    contentType: "application/json",
+                    type: "POST"
+                },
+                destroy: {/*destroy:Object 数据源删除数据的远程配置*/
+                    url: crudServiceBaseUrl + "/demo/submit",
+                    contentType: "application/json",
+                    type: "POST"
+                },
+                parameterMap: function (options, type) {/*parameterMap：function 请求远程数据的时候的参数需要定义为后端需要的格式及信息*/
+                    if (type !== "read" && options.models) {
+                        var datas = Hap.prepareSubmitParameter(options, type);
+                        return kendo.stringify(datas);
+                    } else if (type === "read") {
+
+                        return Hap.prepareQueryParameter
+                        (viewModel.model.toJSON(), options);
+                    }
+                }
+            },
+            batch       : true,
+            serverPaging: true,
+            serverSorting: true,
+            pageSize    : 10,/*Number数据源的分页参数*/
+            schema      : {/*schema：Object远程数据解析配置。此属性可以配置远程数据的模板及各字段的属性及过滤等*/
+                data  : 'rows',/*data: String | Function 配置远程服务器返回的数据格式，以便于获取数据源，相当于数据过滤。远程返回的数据格式不是Array的时候，需要在这里声明如何取出Array或者过滤出对应的Array*/
+                total : 'total',/*total:String｜Function 远程数据的总数，在这里需要指定返回参数中取值字段名称，或者使用函数自己进行过滤返回。此属性和data属性一样，在后台返回的数据格式中如果包含其他信息，需要进行过滤告诉组件如何获取对应的数据*/
+                model : {/*model: Object 远程数据的模型配置*/
+                    /*id: 模型的主键*/
+                    fields: { myId : {type: "long",validation: {required: true}},myName : {type: "string"},
+                        myAge : {type: "long"},myBirthday : {type: "date"}
+                    }/*fields ：模型的列配置。包括模型的列的字段名称，字段属性，默认值，校验方法等，这里设置的属性在添加、修改时会体现出来*/
+                 }
+            }
+        });
+
+/*----------------------------------------------------------------*/
+    var grid = $("#grid").kendoGrid({
+
+        dataSource : dataSource,
+        navigatable: false,
+        height: '300',
+        weight: '180',
+        resizable: true,/*resizable：Boolean 该属性默认为false,表示禁止拖动列，设置为true的时候，可以通过拖动列来改变列的宽度*/
+        scrollable: true,/*scrollable : Boolean| Object 是否出现滚动条，默认为false*/
+        selectable:"multiple,rowbox",/*selectable ：Boolean | String 选中表格的设置，默认false禁止选中，字符串‘row’表示可以选中一行，‘cell’ 表示可以选中一列，‘multiple, row’表示可以选中多行，‘multiple, cell’表示可以选中多列*/
+        dataBound: function () {
+            if (parent.autoResizeIframe) {
+                parent.autoResizeIframe('${RequestParameters.functionCode!}')
+            }
+        },
+        pageable: {/*Boolean | Object 分页属性配置，默认为false不起用分页，当设置为true时，则需要配置分页相关的属性*/
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,/*refresh：boolean 是否显示刷新按钮，默认为false不显示*/
+            buttonCount: 5
+        },
+        sortable: true,/*sortable：boolean ｜Object 是否启用表头排序功能。默认为false禁用。当设置为true时，点击表头可以进行倒序及正序排列*/
+        columns    : [/*columns: Array 表格列属性配置，在该配置中可以对显示的各列进行单独的配置，包括列的类型，模版显示，格式化，数据校验等*/
+            {
+                field: "myId",/*field：String 表格列对应的数据源中的列名，和对应的数据源绑定，显示对应的数据*/
+                title: '<@spring.message "demo.myid"/>',/*title：String 表格头部显示的列名*/
+                attributes: {style: "text-align:center"},/*attributes: Object 在属性可以为列添加class 和 style*/
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style  : "text-align: center"
+                },
+                width: 80/*width：Number 列的宽度*/
+            },
+            {
+                field: "myName",
+                title: '<@spring.message "demo.myname"/>',
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style  : "text-align: center"
+                },
+                width: 80
+            },
+            {
+                field: "myBirthday",
+                attributes: {style: "text-align:center"},
+                title: '<@spring.message "demo.mybirthday"/>',
+                width: 80,
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style  : "text-align: center"
+                },
+                format: "{0:yyyy-MM-dd}"
+            },
+            {
+                field : "myAge",
+                title : '<@spring.message "demo.myage"/>',
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style  : "text-align: center"
+                },
+                width : 80
+            }
+        ],
+        editable   : true
+    }).data("kendoGrid");
+
+    //自动根据当前屏幕大小调整表格
+    Hap.autoResizeGrid("#grid");
+/*----------------------------------------------------------------*/
+    /*MyAge中数据填充options*/
+    /*$("#myAge").kendoComboBox({
+        dataTextField:"myAge",
+        dataValueField:"myAge",
+        animation: {
+            close: {
+                effects: "fadeOut zoom:out",
+                duration: 300
+            },
+            open: {
+                effects: "fadeIn zoom:in",
+                duration: 300
+            }
+        },
+        dataSource:dataSource
+    });*/
+/*----------------------------------------------------------------*/
+/*为Id搜索添加样式，绑定数据*/
+/*var myLocalDataSource = new kendo.data.DataSource();
+    $("#myId").kendoAutoComplete({
+        dataTextField:"myId",
+        dataValueField:"myId",
+        dataSource:dataSource
+    });*/
+/*----------------------------------------------------------------*/
+/*为姓名搜索添加LOV*/
+$("#myName").kendoLov(${lovProvider.getLov(base.contextPath, base.locale,
+"LOV_DEMO")})
+/*----------------------------------------------------------------*/
+/*设置日期类型搜索条件样式*/
+$("#myBirthday").kendoDatePicker({
+    animation: {
+        close: {
+        },
+        open: {
+        }
+    },
+    format: "{0:yyyy-MM-dd}"
+});
+
+/*----------------------------------------------------------------*/
+/*删除操作的实现*/
+kendo.bind($('#page-content'), viewModel);
+function deleteData() {
+    var checked = grid.selectedDataItems();
+
+    if(grid.selectedDataItems().length){
+        kendo.ui.showConfirmDialog({
+            title:$l('hap.tip.info'),
+            message: $l('hap.tip.delete_confirm')
+        }).done(function (event) {
+            if (event.button == 'OK') {
+                $.each(checked,function(i,v){
+                    grid.dataSource.remove(v)
+                })
+                grid.dataSource.sync();
+            }
+        })
+    }
+}
+
+</script>
+</body>
+</html>
